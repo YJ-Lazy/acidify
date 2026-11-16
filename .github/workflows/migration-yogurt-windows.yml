@@ -1,0 +1,45 @@
+name: Migration spike - Yogurt Windows compile
+
+on:
+  push:
+    branches:
+      - test_snowluma_migration
+    paths:
+      - "yogurt/**"
+      - "acidify-core/**"
+      - "acidify-milky/**"
+      - "gradle/**"
+      - "buildSrc/**"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - ".github/workflows/migration-yogurt-windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migration-yogurt-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: test_snowluma_migration
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+
+      - name: Compile Yogurt JVM target
+        run: .\gradlew.bat :yogurt:compileKotlinJvm --no-daemon
+
+      - name: Compile Acidify Milky JVM target
+        run: .\gradlew.bat :acidify-milky:compileKotlinJvm --no-daemon
